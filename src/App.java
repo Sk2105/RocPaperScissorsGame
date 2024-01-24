@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
-
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -132,53 +131,41 @@ public class App {
         computerLabel.setBounds(180, 270, 100, 100);
         computerLabel.setVisible(false);
         gamePanel.add(computerLabel);
-        Runnable visibilityRun =  new Runnable() {
+        Runnable visibilityRun = new Runnable() {
             @Override
             public void run() {
                 waitLabel.setVisible(true);
                 startBtn.setVisible(false);
             }
         };
+
+        //
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                int computerSelectedImage = randomNum.nextInt(3);
+                // create computer choose image
+                waitLabel.setText("Computer is Choose " + choose[computerSelectedImage]);
+                try {
+                    computerLabel.setIcon(getImage(choose[computerSelectedImage]));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                computerLabel.setVisible(true);
+
+                Thread winningShow = new Thread(() -> checkGame(choose[computerSelectedImage]));
+                winningShow.start();
+            }
+
+        };
+
         // set action on start btn
         startBtn.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-              
                 visibilityRun.run();
-
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        int computerSelectedImage = randomNum.nextInt(3);
-                        // create computer choose image
-                        waitLabel.setText("Computer is Choose " + choose[computerSelectedImage]);
-                        try {
-                            computerLabel.setIcon(getImage(choose[computerSelectedImage]));
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
-                        computerLabel.setVisible(true);
-                        Thread winningShow = new Thread(() -> checkGame(choose[computerSelectedImage]));
-
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e1) {
-                            e1.printStackTrace();
-                        }
-                        winningShow.start();
-                    }
-
-                };
-
-                Thread thread = new Thread(runnable);
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-                thread.start();
+                runnable.run();
 
             }
 
@@ -187,7 +174,11 @@ public class App {
     }
 
     private void checkGame(String str) {
-
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
         if (str.equals("Rock") && selectedImage.equals("Paper")) {
             JOptionPane.showMessageDialog(frame, "You are win", "Massage", JOptionPane.INFORMATION_MESSAGE);
         } else if (str.equals("Rock") && selectedImage.equals("Scissors")) {
