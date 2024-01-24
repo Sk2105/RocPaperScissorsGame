@@ -29,11 +29,16 @@ import javax.swing.JRadioButton;
  */
 
 public class App {
+
+    public static String Rock = "Rock";
+    public static String Scissors = "Scissors";
+    public static String Paper = "Paper";
+
     private JFrame frame;
 
     private JLabel topLabel, secondLabel;
 
-    private JLabel rockLabel, paperLabel, scissorsLabel, chooseLabel, computerLabel;
+    private JLabel rockLabel, paperLabel, scissorsLabel, chooseLabel, computerLabel, waitLabel;
 
     private JButton playButton, startBtn;
 
@@ -45,7 +50,7 @@ public class App {
 
     private Container container;
 
-    private String selectedImage = "Rock";
+    public static String selectedImage = "Rock";
 
     private App() throws IOException {
         frame = new JFrame();
@@ -101,8 +106,7 @@ public class App {
         gamePanel.add(secondLabel);
 
         // show choose image
-
-        chooseLabel = new JLabel(getImage(selectedImage));
+        chooseLabel = new JLabel(getImage(App.selectedImage));
         chooseLabel.setBounds(180, 100, 100, 100);
         gamePanel.add(chooseLabel);
 
@@ -110,6 +114,13 @@ public class App {
         startBtn = new JButton("Start");
         startBtn.setBounds(180, 220, 100, 40);
         gamePanel.add(startBtn);
+
+        // create wait label
+        waitLabel = new JLabel("Please Wait....");
+        waitLabel.setBounds(160, 220, 280, 40);
+        gamePanel.add(waitLabel);
+        waitLabel.setBackground(Color.BLUE);
+        waitLabel.setVisible(false);
 
         // create Random Number
         Random randomNum = new Random();
@@ -121,20 +132,53 @@ public class App {
         computerLabel.setBounds(180, 270, 100, 100);
         computerLabel.setVisible(false);
         gamePanel.add(computerLabel);
+        Runnable visibilityRun =  new Runnable() {
+            @Override
+            public void run() {
+                waitLabel.setVisible(true);
+                startBtn.setVisible(false);
+            }
+        };
         // set action on start btn
         startBtn.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                int computerSelectedImage = randomNum.nextInt(3);
-                // create computer choose image
+              
+                visibilityRun.run();
+
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        int computerSelectedImage = randomNum.nextInt(3);
+                        // create computer choose image
+                        waitLabel.setText("Computer is Choose " + choose[computerSelectedImage]);
+                        try {
+                            computerLabel.setIcon(getImage(choose[computerSelectedImage]));
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        computerLabel.setVisible(true);
+                        Thread winningShow = new Thread(() -> checkGame(choose[computerSelectedImage]));
+
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+                        winningShow.start();
+                    }
+
+                };
+
+                Thread thread = new Thread(runnable);
+
                 try {
-                    computerLabel.setIcon(getImage(choose[computerSelectedImage]));
-                } catch (IOException e1) {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
-                computerLabel.setVisible(true);
-                checkGame(choose[computerSelectedImage]);
+                thread.start();
 
             }
 
@@ -143,27 +187,32 @@ public class App {
     }
 
     private void checkGame(String str) {
+
         if (str.equals("Rock") && selectedImage.equals("Paper")) {
-            JOptionPane.showConfirmDialog(frame, "You are win.");
+            JOptionPane.showMessageDialog(frame, "You are win", "Massage", JOptionPane.INFORMATION_MESSAGE);
         } else if (str.equals("Rock") && selectedImage.equals("Scissors")) {
-            JOptionPane.showConfirmDialog(frame, "Your Lose the game.");
+            JOptionPane.showMessageDialog(frame, "Your Lose the game", "Massage", JOptionPane.INFORMATION_MESSAGE);
         } else if (str.equals("Scissors") && selectedImage.equals("Rock")) {
-            JOptionPane.showConfirmDialog(frame, "Your are Win");
+            JOptionPane.showMessageDialog(frame, "You are win", "Massage", JOptionPane.INFORMATION_MESSAGE);
         } else if (str.equals("Paper") && selectedImage.equals("Scissors")) {
-            JOptionPane.showConfirmDialog(frame, "Your Lose the game");
+            JOptionPane.showMessageDialog(frame, "You Lose the game", "Massage", JOptionPane.INFORMATION_MESSAGE);
         } else if (str.equals("Scissors") && selectedImage.equals("Paper")) {
-            JOptionPane.showConfirmDialog(frame, "Your Lose the game");
+            JOptionPane.showMessageDialog(frame, "You Lose the game", "Massage", JOptionPane.INFORMATION_MESSAGE);
+        } else if (str.equals(selectedImage)) {
+            JOptionPane.showMessageDialog(frame, "Match is tie", "Massage", JOptionPane.INFORMATION_MESSAGE);
         }
         cardLayout.previous(container);
+        startBtn.setVisible(true);
+        waitLabel.setVisible(false);
 
     }
 
     private ImageIcon getImage(String str) throws IOException {
-        if (str.equals("Rock")) {
+        if (str.equals(App.Rock)) {
             File file = new File("icons/RockIcon.jpg");
             BufferedImage rockImage = ImageIO.read(file);
             return new ImageIcon(rockImage.getScaledInstance(100, 100, Image.SCALE_DEFAULT));
-        } else if (str.equals("Paper")) {
+        } else if (str.equals(App.Paper)) {
             File file = new File("icons/PaperIcon.jpg");
             BufferedImage rockImage = ImageIO.read(file);
             return new ImageIcon(rockImage.getScaledInstance(100, 100, Image.SCALE_DEFAULT));
@@ -194,8 +243,8 @@ public class App {
         rockLabel.setBounds(80, 100, 100, 100);
         rockButton = new JRadioButton("Rock");
         rockButton.setBounds(100, 210, 100, 50);
-        rockButton.setName("Rock");
-        rockButton.addActionListener(e -> updateRadioButton(0));
+        rockButton.setName(App.Rock);
+        rockButton.addActionListener(e -> updateRadioButton(0, App.Rock));
         homePanel.add(rockButton);
         homePanel.add(rockLabel);
 
@@ -203,9 +252,9 @@ public class App {
         paperLabel = new JLabel(getImage("Paper"));
         paperLabel.setBounds(200, 100, 100, 100);
         paperButton = new JRadioButton("Paper");
-        paperButton.setName("Paper");
+        paperButton.setName(App.Paper);
         paperButton.setBounds(220, 210, 100, 50);
-        paperButton.addActionListener(e -> updateRadioButton(1));
+        paperButton.addActionListener(e -> updateRadioButton(1, App.Paper));
         homePanel.add(paperButton);
         homePanel.add(paperLabel);
 
@@ -213,9 +262,9 @@ public class App {
         scissorsLabel = new JLabel(getImage("Scissors"));
         scissorsLabel.setBounds(320, 100, 100, 100);
         scissorsButton = new JRadioButton("Scissors");
-        scissorsButton.setName("Scissors");
+        scissorsButton.setName(App.Scissors);
         scissorsButton.setBounds(340, 210, 100, 50);
-        scissorsButton.addActionListener(e -> updateRadioButton(2));
+        scissorsButton.addActionListener(e -> updateRadioButton(2, App.Scissors));
         homePanel.add(scissorsButton);
         homePanel.add(scissorsLabel);
 
@@ -229,20 +278,24 @@ public class App {
             @Override
             public void actionPerformed(ActionEvent e) {
                 cardLayout.next(container);
+                try {
+                    chooseLabel.setIcon(getImage(selectedImage));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                computerLabel.setVisible(false);
             }
         });
     }
 
-    private void updateRadioButton(int i) {
+    private void updateRadioButton(int i, String item) {
+        App.selectedImage = item;
         JRadioButton button[] = { rockButton, paperButton, scissorsButton };
         for (JRadioButton btn : button) {
             if (button[i] != btn) {
                 btn.setSelected(false);
-            } else {
-                selectedImage = btn.getName();
             }
         }
-
     }
 
     public static void main(String[] args) throws IOException {
